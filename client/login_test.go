@@ -1,7 +1,7 @@
 /**
 parsing the 'login' action from RETS
 */
-package gorets_client
+package client
 
 import (
 	"testing"

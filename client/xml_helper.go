@@ -1,4 +1,4 @@
-package gorets_client
+package client
 
 import (
 	"encoding/xml"

@@ -1,7 +1,7 @@
 /**
 provides the photo extraction core testing
 */
-package gorets_client
+package client
 
 import (
 	"bytes"

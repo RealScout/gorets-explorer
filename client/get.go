@@ -1,7 +1,7 @@
 /**
 Maybe the dumbest thing in all of RETS
 */
-package gorets_client
+package client
 
 import (
 	"io/ioutil"

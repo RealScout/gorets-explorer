@@ -1,12 +1,13 @@
 /**
 extraction of the data pieces describing a RETS system
 */
-package gorets_client
+package client
 
 import (
 	"encoding/xml"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -112,6 +113,9 @@ func parseMetadataCompactResult(body io.ReadCloser) (*Metadata, error) {
 				if err != nil {
 					return nil, err
 				}
+				if data == nil {
+					continue
+				}
 				switch t.Name.Local {
 				case "METADATA-RESOURCE":
 					metadata.Resources = *data
@@ -130,5 +134,7 @@ func parseMetadataCompactResult(body io.ReadCloser) (*Metadata, error) {
 }
 
 func parseMetadataStandardXml(body io.ReadCloser) (*Metadata, error) {
+	defer body.Close()
+	ioutil.ReadAll(body)
 	return nil, errors.New("unsupported metadata format option")
 }

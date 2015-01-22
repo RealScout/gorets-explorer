@@ -2,7 +2,7 @@
 provides a wrapper and built in auth at the transport
 layer.
 */
-package gorets_client
+package client
 
 import (
 	"errors"

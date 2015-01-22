@@ -1,7 +1,7 @@
 /**
 provides the searching core
 */
-package gorets_client
+package client
 
 import (
 	"strings"

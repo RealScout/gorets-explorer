@@ -1,4 +1,4 @@
-package gorets_client
+package client
 
 import (
 	"errors"
@@ -7,6 +7,6 @@ import (
 /**
 TODO
 */
-func (s *Session) ChangePassword(url string) error {
+func (s *Session) PostObject(url string) error {
 	return errors.New("Unsupported Operation")
 }

@@ -2,7 +2,7 @@
 http://en.wikipedia.org/wiki/Digest_access_authentication
 */
 
-package gorets_client
+package client
 
 import (
 	"testing"

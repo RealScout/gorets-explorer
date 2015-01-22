@@ -1,7 +1,7 @@
 /**
 wire logging utils
 */
-package gorets_client
+package client
 
 import (
 	"io"

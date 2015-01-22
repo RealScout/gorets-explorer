@@ -1,7 +1,7 @@
 /**
 provides the basic mechanism for User Agent authentication for rets
 */
-package gorets_client
+package client
 
 import (
 	"crypto/md5"
