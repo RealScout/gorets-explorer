@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import ConnectionService from 'services/ConnectionService';
 import Autocomplete from 'react-autocomplete';
+import Connections from 'components/containers/Connections';
+import Server from 'components/containers/Server';
 
 export default class App extends React.Component {
 
@@ -19,7 +22,6 @@ export default class App extends React.Component {
       connectionAutocompleteField: '',
     };
     this.establishConnection = this.establishConnection.bind(this);
-    this.setSelectedConnection = this.setSelectedConnection.bind(this);
   }
 
   componentDidMount() {
@@ -42,14 +44,6 @@ export default class App extends React.Component {
       });
   }
 
-  setSelectedConnection(connection) {
-    if (typeof connection === 'string') {
-      this.setState({ selectedConnection: { id: connection } });
-      return;
-    }
-    this.setState({ selectedConnection: connection });
-  }
-
   establishConnection(connection) {
     ConnectionService
       .login(connection)
@@ -65,13 +59,6 @@ export default class App extends React.Component {
   }
 
   render() {
-    let { children } = this.props;
-    // if (children.props.connection) {
-    children = React.cloneElement(children, {
-      connection: this.state.selectedConnection,
-      setSelectedConnection: this.setSelectedConnection,
-    });
-    // }
     return (
       <div className="helvetica">
         <nav className="pa3 bg-black">
@@ -82,43 +69,6 @@ export default class App extends React.Component {
           >
             RETS Explorer
           </Link>
-          <Link
-            to="/connections"
-            title="Connections"
-            activeStyle={{ color: 'white' }}
-            className="link red f6 dib mr3"
-          >
-            Connections
-          </Link>
-          <Link
-            to="/metadata"
-            title="Metadata"
-            activeStyle={{ color: 'white' }}
-            className="link red f6 dib mr3"
-          >
-            Metadata
-          </Link>
-          <Link
-            to="/search"
-            title="Search"
-            activeStyle={{ color: 'white' }}
-            className="link red f6 dib mr3"
-          >
-            Search
-          </Link>
-          <Link
-            to="/objects"
-            title="Objects"
-            activeStyle={{ color: 'white' }}
-            className="link red f6 dib mr3"
-          >
-            Objects
-          </Link>
-        </nav>
-        <div className="pv2 pl3 bb v-mid flex flex-row align-center overflow-x-scroll">
-          <span className="f6 mr3">Active Connection:
-            <span className="b"> {this.state.selectedConnection.id}</span>
-          </span>
           <Autocomplete
             value={this.state.connectionAutocompleteField}
             inputProps={{
@@ -148,18 +98,19 @@ export default class App extends React.Component {
               </div>
             )}
           />
+        </nav>
+        <Tabs>
+          <TabList>
+            <Tab>New Connection</Tab>
+            {this.state.activeConnections.map(connection =>
+              <Tab>{connection.id}</Tab>
+            )}
+          </TabList>
+          <TabPanel><Connections /></TabPanel>
           {this.state.activeConnections.map(connection =>
-            <Link
-              to={`/metadata/${connection.id}`}
-              onClick={() => this.setState({ selectedConnection: connection })}
-              title={connection.id}
-              className="link f6 dib ml2"
-            >
-              {connection.id}
-            </Link>
+            <TabPanel><Server connection={connection} /></TabPanel>
           )}
-        </div>
-        {children}
+        </Tabs>
       </div>
     );
   }

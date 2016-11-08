@@ -42,6 +42,7 @@ class Metadata extends React.Component {
       onChange: this.searchInputsChange.bind(this),
     });
     this.state = {
+      connection: props.connection,
       metadata: Metadata.emptyMetadata,
       selectedClass: null,
       defaultRows: [],
@@ -56,23 +57,7 @@ class Metadata extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.params.connection) {
-      this.getMetadata(this.props.params.connection);
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    // if no connection is inbound
-    if (!nextProps.params.connection) {
-      console.log('wiping metadata');
-      this.setState({ metadata: Metadata.emptyMetadata });
-      return;
-    }
-    // if this is a new connection
-    if (nextProps.params !== this.props.params) {
-      this.props.setSelectedConnection(nextProps.params.connection);
-      this.getMetadata(nextProps.params.connection);
-    }
+    this.getMetadata(this.state.connection.id);
   }
 
   onClearFilters = () => {
