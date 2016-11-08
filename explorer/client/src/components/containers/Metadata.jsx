@@ -1,7 +1,4 @@
 import React from 'react';
-import MetadataService from 'services/MetadataService';
-import StorageCache from 'util/StorageCache';
-import { Fieldset, Field, createValue, Input } from 'react-forms';
 import { withRouter } from 'react-router';
 import ReactDataGrid from 'react-data-grid';
 
@@ -16,11 +13,12 @@ class Metadata extends React.Component {
     location: React.PropTypes.any,
     router: React.PropTypes.any,
     connection: React.PropTypes.any,
-    setSelectedConnection: React.PropTypes.func.isRequired,
+    metadata: React.PropTypes.any,
   }
 
   static defaultProps = {
-    connection: { id: null },
+    connection: { id: 'n/a' },
+    metadata: Metadata.emptyMetadata,
   }
 
   static emptyMetadata = {
@@ -32,32 +30,17 @@ class Metadata extends React.Component {
       SystemID: 'N/A',
     },
   };
-
   constructor(props) {
     super(props);
-    const searchForm = createValue({
-      value: {
-        query: '(TIMESTAMP=2016-11-01T00:00:00+)',
-      },
-      onChange: this.searchInputsChange.bind(this),
-    });
     this.state = {
-      connection: props.connection,
-      metadata: Metadata.emptyMetadata,
       selectedClass: null,
       defaultRows: [],
       selectedClassRows: [],
       selectedFieldSet: [],
       filters: {},
-      searchForm,
     };
     this.handleGridSort = this.handleGridSort.bind(this);
     this.onCellSelected = this.onCellSelected.bind(this);
-    this.submitSearchForm = this.submitSearchForm.bind(this);
-  }
-
-  componentDidMount() {
-    this.getMetadata(this.state.connection.id);
   }
 
   onClearFilters = () => {
@@ -77,39 +60,6 @@ class Metadata extends React.Component {
       currentSearchVal = `${currentSearchVal},`;
     }
     searchForm.value['select'] = `${currentSearchVal}${selectedVal}`;
-    this.setState({ searchForm });
-  }
-
-  getMetadata(connectionId) {
-    this.setState({
-      selectedClass: null,
-      defaultRows: [],
-      selectedClassRows: [],
-      metadata: Metadata.emptyMetadata,
-    });
-    const ck = `${connectionId}-metadata`;
-    const md = StorageCache.getFromCache(ck);
-    if (md) {
-      console.log('loaded metadata from local cache', md);
-      this.setState({ metadata: md });
-      return;
-    }
-    console.log('no metadata cached');
-    MetadataService
-      .get(connectionId)
-      .then(response => response.json())
-      .then(json => {
-        if (json.error !== null) {
-          return;
-        }
-        console.log('json request:', json.result.Metadata);
-        this.setState({ metadata: json.result.Metadata });
-        // this.setState({ metadata: md });
-        StorageCache.putInCache(ck, json.result.Metadata, 60);
-      });
-  }
-
-  searchInputsChange(searchForm) {
     this.setState({ searchForm });
   }
 
@@ -180,19 +130,6 @@ class Metadata extends React.Component {
     }
   }
 
-  submitSearchForm() {
-    this.props.router.push({
-      ...this.props.location,
-      pathname: '/search',
-      query: Object.assign({}, {
-        ...this.state.searchForm.value,
-        id: this.props.connection.id,
-        resource: this.state.selectedClass['METADATA-TABLE'].Resource,
-        class: this.state.selectedClass.ClassName,
-      }),
-    });
-  }
-
   renderSelectedClassDescription(clazz) {
     return (
       <span title={clazz.Description}>
@@ -246,11 +183,11 @@ class Metadata extends React.Component {
     return (
       <div>
         <div className="fl h-100-ns w-100 w-20-ns no-list-style pa3 overflow-x-scroll nowrap">
-          <h1 className="f5" title={this.state.metadata.System.SystemDescription}>
-            {this.state.metadata.System.SystemID}
+          <h1 className="f5" title={this.props.metadata.System.SystemDescription}>
+            {this.props.metadata.System.SystemID}
           </h1>
           <ul className="pa0 ma0">
-            {this.state.metadata.System['METADATA-RESOURCE'].Resource.map((r) =>
+            {this.props.metadata.System['METADATA-RESOURCE'].Resource.map((r) =>
               <li className="mb2">
                 <div title={r.Description} className="b">{r.ResourceID}</div>
                 <ul className="pa0 pl3 mv1">
@@ -272,15 +209,6 @@ class Metadata extends React.Component {
             ? (
               <div>
                 { tableBody }
-                <Fieldset formValue={this.state.searchForm}>
-                  <Field select="select" label="Columns">
-                    <Input className="w-100" />
-                  </Field>
-                  <Field select="query" label="Query">
-                    <Input className="w-100" />
-                  </Field>
-                  <button onClick={this.submitSearchForm}>Submit</button>
-                </Fieldset>
               </div>
             )
             : <h1 className="f4">Please select a class to explore</h1>

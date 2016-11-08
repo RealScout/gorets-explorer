@@ -1,16 +1,23 @@
 import React from 'react';
-import MetadataService from 'services/MetadataService';
 import SearchService from 'services/SearchService';
 import StorageCache from 'util/StorageCache';
 import { withRouter } from 'react-router';
 import some from 'lodash/some';
 import ReactDataGrid from 'react-data-grid';
+import { Fieldset, Field, createValue, Input } from 'react-forms';
 
 class Search extends React.Component {
 
   static propTypes = {
+    connection: React.PropTypes.any,
+    metadata: React.PropTypes.any,
     location: React.PropTypes.any,
     router: React.PropTypes.any,
+  }
+
+  static defaultProps = {
+    connection: { id: 'n/a' },
+    metadata: Search.emptyMetadata,
   }
 
   static emptyMetadata = {
@@ -18,13 +25,20 @@ class Search extends React.Component {
       'METADATA-RESOURCE': {
         Resource: [],
       },
+      SystemDescription: 'No Metadata Loaded',
+      SystemID: 'N/A',
     },
   };
 
   constructor(props) {
     super(props);
+    const searchForm = createValue({
+      value: {
+        query: '(TIMESTAMP=2016-11-01T00:00:00+)',
+      },
+      onChange: this.searchInputsChange.bind(this),
+    });
     this.state = {
-      metadata: Search.emptyMetadata,
       searchResultColumns: [],
       searchResultRows: [],
       searchParams: {
@@ -37,14 +51,12 @@ class Search extends React.Component {
       searchHistory: [],
       searchResults: {},
       selectedIndexes: [],
+      searchForm,
     };
     this.search = this.search.bind(this);
     this.onRowsSelected = this.onRowsSelected.bind(this);
     this.onRowsDeselected = this.onRowsDeselected.bind(this);
-  }
-
-  componentWillMount() {
-    this.search(this.props.location.query);
+    this.submitSearchForm = this.submitSearchForm.bind(this);
   }
 
   onRowsSelected(rows) {
@@ -99,14 +111,32 @@ class Search extends React.Component {
   }
 
   getObjectTypes() {
-    return this.getResource()['METADATA-OBJECT']['Object'].map(o => o.ObjectType) || [];
+    const r = this.getResource();
+    if (r == null) {
+      return [];
+    }
+    return ['METADATA-OBJECT']['Object'].map(o => o.ObjectType) || [];
   }
 
   getResource() {
-    // TODO errors?  those can happen?
-    return this.state.metadata.System['METADATA-RESOURCE'].Resource.filter(
+    const rs = this.props.metadata.System['METADATA-RESOURCE'].Resource.filter(
       r => (r.ResourceID === this.state.searchParams.resource)
-    )[0];
+    );
+    if (rs.length === 0) {
+      return null;
+    }
+    return rs[0];
+  }
+
+  submitSearchForm() {
+    this.search({
+      id: this.props.connection.id,
+      ...this.state.searchForm.value,
+    });
+  }
+
+  searchInputsChange(searchForm) {
+    this.setState({ searchForm });
   }
 
   applySearchState() {
@@ -144,10 +174,6 @@ class Search extends React.Component {
   }
 
   search(searchParams) {
-    this.props.router.push({
-      ...this.props.location,
-      query: searchParams,
-    });
     // search history cache key used for storage
     const sck = `${searchParams.id}-search-history`;
     const searchHistory = StorageCache.getFromCache(sck) || [];
@@ -175,25 +201,6 @@ class Search extends React.Component {
         });
         this.applySearchState();
       });
-    const mck = `${searchParams.id}-metadata`;
-    const md = StorageCache.getFromCache(mck);
-    if (md) {
-      this.setState({ metadata: md });
-    } else {
-      MetadataService
-        .get(searchParams.id)
-        .then(response => response.json())
-        .then(json => {
-          if (json.error !== null) {
-            this.setState({ metadata: Search.emptyMetadata });
-            return;
-          }
-          this.setState({ metadata: json.result.Metadata });
-          console.log('meta: ', json.result.Metadata);
-          StorageCache.putInCache(mck, json.result.Metadata, 60);
-          this.applySearchState();
-        });
-    }
   }
 
   renderSearchResultsTable() {
@@ -241,6 +248,23 @@ class Search extends React.Component {
           </ul>
         </div>
         <div className="fl h-100 min-vh-100 w-100 w-80-ns pa3 bl-ns">
+          <div>
+            <Fieldset formValue={this.state.searchForm}>
+              <Field select="resource" label="Resource">
+                <Input className="w-30" />
+              </Field>
+              <Field select="class" label="Class">
+                <Input className="w-30" />
+              </Field>
+              <Field select="select" label="Columns">
+                <Input className="w-80" />
+              </Field>
+              <Field select="query" label="Query">
+                <Input className="w-80" />
+              </Field>
+              <button onClick={this.submitSearchForm}>Submit</button>
+            </Fieldset>
+          </div>
           <div>
             <div className="b mb2">Search Results:</div>
             {this.renderSearchResultsTable()}

@@ -4,6 +4,8 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import Metadata from 'components/containers/Metadata';
 import Search from 'components/containers/Search';
 import Objects from 'components/containers/Objects';
+import StorageCache from 'util/StorageCache';
+import MetadataService from 'services/MetadataService';
 
 class Server extends React.Component {
 
@@ -12,17 +14,55 @@ class Server extends React.Component {
     location: React.PropTypes.any,
     router: React.PropTypes.any,
     connection: React.PropTypes.any,
-    setSelectedConnection: React.PropTypes.func.isRequired,
+    metadata: React.PropTypes.any,
   }
 
-  static defaultProps = {
-    connection: { id: null },
-  }
+  static emptyMetadata = {
+    System: {
+      'METADATA-RESOURCE': {
+        Resource: [],
+      },
+      SystemDescription: 'No Metadata Loaded',
+      SystemID: 'N/A',
+    },
+  };
 
   constructor(props) {
     super(props);
-    this.connection = props.connection;
-    this.state = {};
+    this.state = {
+      connection: props.connection,
+      metadata: Metadata.emptyMetadata,
+    };
+    this.getMetadata = this.getMetadata.bind(this);
+  }
+
+  componentWillMount() {
+    this.getMetadata(m => {
+      console.log('setting ', m);
+      this.setState({ metadata: m });
+    });
+  }
+
+  getMetadata(onFound) {
+    const ck = `${this.state.connection.id}-metadata`;
+    const md = StorageCache.getFromCache(ck);
+    if (md) {
+      console.log('loaded metadata from local cache', md);
+      onFound(md);
+      return;
+    }
+    console.log('no metadata cached');
+    MetadataService
+      .get(this.state.connection.id)
+      .then(response => response.json())
+      .then(json => {
+        if (json.error !== null) {
+          return;
+        }
+        console.log('metadata pulled via json request');
+        onFound(json.result.Metadata);
+        StorageCache.putInCache(ck, json.result.Metadata, 60);
+      });
   }
 
   render() {
@@ -33,9 +73,9 @@ class Server extends React.Component {
           <Tab>Search</Tab>
           <Tab>Objects</Tab>
         </TabList>
-        <TabPanel><Metadata connection={this.connection} /></TabPanel>
-        <TabPanel><Search connection={this.connection} /></TabPanel>
-        <TabPanel><Objects connection={this.connection} /></TabPanel>
+        <TabPanel><Metadata connection={this.state.connection} metadata={this.state.metadata} /></TabPanel>
+        <TabPanel><Search connection={this.state.connection} metadata={this.state.metadata} /></TabPanel>
+        <TabPanel><Objects connection={this.state.connection} metadata={this.state.metadata} /></TabPanel>
       </Tabs>
     );
   }
