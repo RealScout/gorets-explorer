@@ -29,6 +29,13 @@ class Search extends React.Component {
       SystemID: 'N/A',
     },
   };
+  static emptySearch = {
+    id: null,
+    resource: null,
+    class: null,
+    select: null,
+    query: null,
+  };
 
   constructor(props) {
     super(props);
@@ -41,13 +48,7 @@ class Search extends React.Component {
     this.state = {
       searchResultColumns: [],
       searchResultRows: [],
-      searchParams: {
-        id: null,
-        resource: null,
-        class: null,
-        select: null,
-        query: null,
-      },
+      searchParams: Search.emptySearch,
       searchHistory: [],
       searchResults: {},
       selectedIndexes: [],
@@ -57,6 +58,20 @@ class Search extends React.Component {
     this.onRowsSelected = this.onRowsSelected.bind(this);
     this.onRowsDeselected = this.onRowsDeselected.bind(this);
     this.submitSearchForm = this.submitSearchForm.bind(this);
+  }
+
+  componentWillMount() {
+      // search history cache key used for storage
+    const sck = `${this.props.connection.id}-search-history`;
+    const searchHistory = StorageCache.getFromCache(sck) || [];
+    let searchParams = Search.emptySearch;
+    if (searchHistory.length > 0) {
+      searchParams = searchHistory[0];
+    }
+    this.setState({
+      searchParams,
+      searchHistory,
+    });
   }
 
   onRowsSelected(rows) {
@@ -115,7 +130,7 @@ class Search extends React.Component {
     if (r == null) {
       return [];
     }
-    return ['METADATA-OBJECT']['Object'].map(o => o.ObjectType) || [];
+    return r['METADATA-OBJECT']['Object'].map(o => o.ObjectType) || [];
   }
 
   getResource() {
@@ -182,7 +197,7 @@ class Search extends React.Component {
       searchHistory,
     });
     console.log('source id:', searchParams.id);
-    if (searchParams === undefined || searchParams.id === undefined) {
+    if (searchParams === Search.emptySearch) {
       return;
     }
     console.log('cache key found', sck);
