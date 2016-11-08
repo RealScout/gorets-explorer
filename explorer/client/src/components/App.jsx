@@ -55,7 +55,7 @@ export default class App extends React.Component {
               const { active } = this.state;
               active[connection.id] = (<Server connection={connection} />);
               this.setState({
-                connectionAutocompleteField: value,
+                connectionAutocompleteField: '',
                 selected: connection,
                 active,
               });
