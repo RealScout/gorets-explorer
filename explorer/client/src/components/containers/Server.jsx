@@ -21,9 +21,8 @@ class Server extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      connection: props.connection,
-    };
+    this.connection = props.connection;
+    this.state = {};
   }
 
   render() {
@@ -34,9 +33,9 @@ class Server extends React.Component {
           <Tab>Search</Tab>
           <Tab>Objects</Tab>
         </TabList>
-        <TabPanel><Metadata connection={this.state.connection} /></TabPanel>
-        <TabPanel><Search connection={this.state.connection} /></TabPanel>
-        <TabPanel><Objects connection={this.state.connection} /></TabPanel>
+        <TabPanel><Metadata connection={this.connection} /></TabPanel>
+        <TabPanel><Search connection={this.connection} /></TabPanel>
+        <TabPanel><Objects connection={this.connection} /></TabPanel>
       </Tabs>
     );
   }

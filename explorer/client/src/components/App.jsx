@@ -8,53 +8,22 @@ import Server from 'components/containers/Server';
 
 export default class App extends React.Component {
 
-  static propTypes = {
-    children: React.PropTypes.any,
-    params: React.PropTypes.any,
-  }
-
   constructor(props) {
     super(props);
     this.state = {
       connections: [],
-      activeConnections: [],
-      selectedConnection: {},
+      active: {},
+      selected: {},
       connectionAutocompleteField: '',
     };
-    this.establishConnection = this.establishConnection.bind(this);
   }
 
   componentDidMount() {
-    if (this.props.params.connection) {
-      this.setSelectedConnection({
-        id: this.props.params.connection,
-      });
-    }
     ConnectionService
       .getConnectionList()
       .then(res => res.json())
       .then((json) => {
         this.setState({ connections: json.result.connections });
-      });
-    ConnectionService
-      .getActiveConnectionList()
-      .then(res => res.json())
-      .then((json) => {
-        this.setState({ activeConnections: json.result.connections || [] });
-      });
-  }
-
-  establishConnection(connection) {
-    ConnectionService
-      .login(connection)
-      .then(res => res.json())
-      .then(() => {
-        ConnectionService
-          .getActiveConnectionList()
-          .then(res => res.json())
-          .then((activeConnections) => {
-            this.setState({ activeConnections: activeConnections.result.connections || [] });
-          });
       });
   }
 
@@ -83,9 +52,13 @@ export default class App extends React.Component {
             onChange={(event, value) => this.setState({ connectionAutocompleteField: value })}
             onSelect={(value, connection) => {
               console.log('selected', value);
-              this.setState({ connectionAutocompleteField: value });
-              this.setState({ selectedConnection: connection });
-              this.establishConnection(connection);
+              const { active } = this.state;
+              active[connection.id] = (<Server connection={connection} />);
+              this.setState({
+                connectionAutocompleteField: value,
+                selected: connection,
+                active,
+              });
             }}
             sortItems={(a, b) => (a.id.toLowerCase() <= b.id.toLowerCase() ? -1 : 1)}
             getItemValue={(item) => item.id}
@@ -102,13 +75,13 @@ export default class App extends React.Component {
         <Tabs>
           <TabList>
             <Tab>New Connection</Tab>
-            {this.state.activeConnections.map(connection =>
-              <Tab>{connection.id}</Tab>
+            {Object.keys(this.state.active).map(id =>
+              (<Tab>{id}</Tab>)
             )}
           </TabList>
           <TabPanel><Connections /></TabPanel>
-          {this.state.activeConnections.map(connection =>
-            <TabPanel><Server connection={connection} /></TabPanel>
+          {Object.keys(this.state.active).map(id =>
+            (<TabPanel>{this.state.active[id]}</TabPanel>)
           )}
         </Tabs>
       </div>
