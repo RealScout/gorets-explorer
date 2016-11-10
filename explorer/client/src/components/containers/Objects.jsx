@@ -11,12 +11,7 @@ class Objects extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      searchParams: {
-        id: null,
-        resource: null,
-        ids: null,
-        types: null,
-      },
+      searchParams: ObjectsService.params,
       objects: {},
     };
   }

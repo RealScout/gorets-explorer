@@ -17,21 +17,11 @@ class Server extends React.Component {
     metadata: React.PropTypes.any,
   }
 
-  static emptyMetadata = {
-    System: {
-      'METADATA-RESOURCE': {
-        Resource: [],
-      },
-      SystemDescription: 'No Metadata Loaded',
-      SystemID: 'N/A',
-    },
-  };
-
   constructor(props) {
     super(props);
     this.state = {
       connection: props.connection,
-      metadata: Metadata.emptyMetadata,
+      metadata: MetadataService.empty,
     };
     this.getMetadata = this.getMetadata.bind(this);
   }

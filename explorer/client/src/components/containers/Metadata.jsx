@@ -1,6 +1,7 @@
 import React from 'react';
 import { withRouter } from 'react-router';
 import ReactDataGrid from 'react-data-grid';
+import MetadataService from 'services/MetadataService';
 
 const ReactDataGridPlugins = require('react-data-grid/addons');
 
@@ -18,7 +19,7 @@ class Metadata extends React.Component {
 
   static defaultProps = {
     connection: { id: 'n/a' },
-    metadata: Metadata.emptyMetadata,
+    metadata: MetadataService.empty,
   }
 
   static emptyMetadata = {
@@ -26,8 +27,8 @@ class Metadata extends React.Component {
       'METADATA-RESOURCE': {
         Resource: [],
       },
-      SystemDescription: 'No Metadata Loaded',
-      SystemID: 'N/A',
+      SystemDescription: 'Loading metadata...',
+      SystemID: 'Loading...',
     },
   };
   constructor(props) {

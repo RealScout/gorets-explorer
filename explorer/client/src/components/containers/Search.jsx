@@ -4,6 +4,7 @@ import StorageCache from 'util/StorageCache';
 import { withRouter } from 'react-router';
 import some from 'lodash/some';
 import ReactDataGrid from 'react-data-grid';
+import MetadataService from 'services/MetadataService';
 import { Fieldset, Field, createValue, Input } from 'react-forms';
 
 class Search extends React.Component {
@@ -17,25 +18,9 @@ class Search extends React.Component {
 
   static defaultProps = {
     connection: { id: 'n/a' },
-    metadata: Search.emptyMetadata,
+    metadata: MetadataService.empty,
   }
 
-  static emptyMetadata = {
-    System: {
-      'METADATA-RESOURCE': {
-        Resource: [],
-      },
-      SystemDescription: 'No Metadata Loaded',
-      SystemID: 'N/A',
-    },
-  };
-  static emptySearch = {
-    id: null,
-    resource: null,
-    class: null,
-    select: null,
-    query: null,
-  };
 
   constructor(props) {
     super(props);
@@ -48,7 +33,7 @@ class Search extends React.Component {
     this.state = {
       searchResultColumns: [],
       searchResultRows: [],
-      searchParams: Search.emptySearch,
+      searchParams: Search.params,
       searchHistory: [],
       searchResults: {},
       selectedIndexes: [],

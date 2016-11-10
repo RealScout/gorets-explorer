@@ -27,7 +27,7 @@ type MetadataHeadParams struct {
 
 // Head ....
 func (ms MetadataService) Head(r *http.Request, args *MetadataHeadParams, reply *MetadataResponse) error {
-	fmt.Printf("metadat head params: %v\n", args)
+	fmt.Printf("metadata head params: %v\n", args)
 	s := sessions.Open(args.ID)
 	ctx := context.Background()
 	return s.Exec(ctx, func(r rets.Requester, u rets.CapabilityURLs) error {
