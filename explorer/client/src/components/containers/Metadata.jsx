@@ -39,29 +39,28 @@ class Metadata extends React.Component {
       selectedClassRows: [],
       selectedFieldSet: [],
       filters: {},
+      selectedIndexes: [],
     };
     this.handleGridSort = this.handleGridSort.bind(this);
-    this.onCellSelected = this.onCellSelected.bind(this);
+    this.onRowsSelected = this.onRowsSelected.bind(this);
+    this.onRowsDeselected = this.onRowsDeselected.bind(this);
+  }
+
+  onRowsSelected(rows) {
+    this.setState({
+      selectedIndexes: this.state.selectedIndexes.concat(rows.map(r => r.rowIdx)),
+    });
+  }
+
+  onRowsDeselected(rows) {
+    const rowIndexes = rows.map(r => r.rowIdx);
+    this.setState({
+      selectedIndexes: this.state.selectedIndexes.filter(i => rowIndexes.indexOf(i) === -1),
+    });
   }
 
   onClearFilters = () => {
     this.setState({ filters: {} });
-  }
-
-  onCellSelected(coordinates) {
-    const row = this.state.selectedClassRows[coordinates.rowIdx];
-    const selectedKey = 'SystemName';
-    const selectedVal = row[selectedKey];
-    const { searchForm } = this.state;
-    if (searchForm.value === null) {
-      searchForm.value = {};
-    }
-    let currentSearchVal = searchForm.value['select'] || '';
-    if (currentSearchVal !== '') {
-      currentSearchVal = `${currentSearchVal},`;
-    }
-    searchForm.value['select'] = `${currentSearchVal}${selectedVal}`;
-    this.setState({ searchForm });
   }
 
   metadataClassClick(selectedClass) {
@@ -101,6 +100,7 @@ class Metadata extends React.Component {
     this.setState({ selectedClassRows: rows });
   }
 
+  // TODO row selection and filters arent playing well together
   handleFilterChange = (filter) => {
     const newFilters = Object.assign({}, this.state.filters);
     if (filter.filterTerm) {
@@ -174,7 +174,15 @@ class Metadata extends React.Component {
             toolbar={<Toolbar enableFilter />}
             onAddFilter={this.handleFilterChange}
             onClearFilters={this.onClearFilters}
-            onCellSelected={this.onCellSelected}
+            rowSelection={{
+              showCheckbox: true,
+              enableShiftSelect: true,
+              onRowsSelected: this.onRowsSelected,
+              onRowsDeselected: this.onRowsDeselected,
+              selectBy: {
+                indexes: this.state.selectedIndexes,
+              },
+            }}
           />
         </div>
       );
