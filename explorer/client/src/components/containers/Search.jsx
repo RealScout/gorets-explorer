@@ -17,10 +17,9 @@ class Search extends React.Component {
   }
 
   static defaultProps = {
-    connection: { id: 'n/a' },
+    connection: { id: null },
     metadata: MetadataService.empty,
   }
-
 
   constructor(props) {
     super(props);
@@ -31,13 +30,13 @@ class Search extends React.Component {
       onChange: this.searchInputsChange.bind(this),
     });
     this.state = {
-      searchResultColumns: [],
-      searchResultRows: [],
-      searchParams: Search.params,
+      searchParams: SearchService.params,
+      searchForm,
       searchHistory: [],
       searchResults: {},
+      searchResultColumns: [],
+      searchResultRows: [],
       selectedIndexes: [],
-      searchForm,
     };
     this.search = this.search.bind(this);
     this.onRowsSelected = this.onRowsSelected.bind(this);
@@ -73,32 +72,32 @@ class Search extends React.Component {
   }
 
 
-  getObjects() {
-    const {
-      searchResultRows,
-      searchParams,
-      selectedIndexes,
-    } = this.state;
-    const keyFieldCol = this.getKeyFieldColumn();
-    const selectedRows = selectedIndexes.map(i => searchResultRows[i]);
-    console.log('rows', selectedRows);
-    const ids = selectedRows.map(r => r[keyFieldCol.key]);
-    if (ids.length === 0) {
-      console.log('no selected ids', selectedIndexes);
-      return;
-    }
-    console.log('ids', ids);
-    this.props.router.push({
-      ...this.props.location,
-      pathname: '/objects',
-      query: {
-        id: searchParams.id,
-        resource: searchParams.resource,
-        ids: ids.join(','),
-        types: this.getObjectTypes().join(','),
-      },
-    });
-  }
+  // getObjects() {
+  //   const {
+  //     searchResultRows,
+  //     searchParams,
+  //     selectedIndexes,
+  //   } = this.state;
+  //   const keyFieldCol = this.getKeyFieldColumn();
+  //   const selectedRows = selectedIndexes.map(i => searchResultRows[i]);
+  //   console.log('rows', selectedRows);
+  //   const ids = selectedRows.map(r => r[keyFieldCol.key]);
+  //   if (ids.length === 0) {
+  //     console.log('no selected ids', selectedIndexes);
+  //     return;
+  //   }
+  //   console.log('ids', ids);
+  //   this.props.router.push({
+  //     ...this.props.location,
+  //     pathname: '/objects',
+  //     query: {
+  //       id: searchParams.id,
+  //       resource: searchParams.resource,
+  //       ids: ids.join(','),
+  //       types: this.getObjectTypes().join(','),
+  //     },
+  //   });
+  // }
 
   getKeyFieldColumn() {
     const { searchResultColumns } = this.state;
@@ -111,6 +110,9 @@ class Search extends React.Component {
   }
 
   getObjectTypes() {
+    if (!this.state.searchParams) {
+      return [];
+    }
     const r = this.getResource();
     if (r == null) {
       return [];
@@ -119,6 +121,9 @@ class Search extends React.Component {
   }
 
   getResource() {
+    if (!this.state.searchParams) {
+      return [];
+    }
     const rs = this.props.metadata.System['METADATA-RESOURCE'].Resource.filter(
       r => (r.ResourceID === this.state.searchParams.resource)
     );
