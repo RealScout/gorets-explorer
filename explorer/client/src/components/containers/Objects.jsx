@@ -1,49 +1,77 @@
 import React from 'react';
 import { withRouter } from 'react-router';
+import some from 'lodash/some';
 import ObjectsService from 'services/ObjectsService';
+import StorageCache from 'util/StorageCache';
+import { Fieldset, Field, createValue, Input } from 'react-forms';
 
 class Objects extends React.Component {
 
   static propTypes = {
+    connection: React.PropTypes.any,
+    metadata: React.PropTypes.any,
+    router: React.PropTypes.any,
     location: React.PropTypes.any,
   }
 
   constructor(props) {
     super(props);
+    const objectsForm = createValue({
+      value: {
+        resource: 'Property',
+        type: 'Photo',
+      },
+      onChange: this.searchInputsChange.bind(this),
+    });
     this.state = {
-      searchParams: ObjectsService.params,
+      objectsParams: ObjectsService.params,
+      objectsForm,
+      objectsHistory: [],
       objects: {},
     };
-  }
-
-  componentWillMount() {
-    this.setState({
-      searchParams: this.props.location.query,
-    });
     this.getObjects = this.getObjects.bind(this);
   }
 
-  getObjects(type) {
-    const { searchParams } = this.state;
-    const contentId = searchParams.ids.split(',').map(
+  // componentWillMount() {
+  //   this.setState({
+  //     getParams: this.props.location.query,
+  //   });
+  // }
+
+  getObjects() {
+    const ock = `${this.props.connection.id}-search-history`;
+    const objectsHistory = StorageCache.getFromCache(ock) || [];
+    const { objectsParams } = this.state;
+    if (!objectsParams.ids) {
+      return;
+    }
+    const contentId = objectsParams.ids.split(',').map(
         // avoiding other lint issues
         i => [i, '*'].join(':')
     ).join(',');
 
     ObjectsService
       .getObjects({
-        id: searchParams.id,
-        resource: searchParams.resource,
-        type,
+        id: this.props.connection.id,
+        resource: objectsParams.resource,
+        type: objectsParams.type,
         objectid: contentId,
       })
       .then((res) => res.json())
       .then(json => {
+        if (!some(objectsHistory, objectsParams)) {
+          objectsHistory.unshift(objectsParams);
+          StorageCache.putInCache(ock, objectsHistory, 720);
+        }
         console.log(json);
         this.setState({
           objects: json,
         });
       });
+  }
+
+  searchInputsChange(objectsForm) {
+    this.setState({ objectsForm });
   }
 
   renderObjectInfo(obj) {
@@ -88,29 +116,46 @@ class Objects extends React.Component {
   }
 
   render() {
-    const { searchParams, objects } = this.state;
+    const { objects } = this.state;
     const hasResult = (objects.result && objects.result['Objects'].length > 0);
     return (
       <div className="pa2">
-        <div>
-          <span className="b">Connection: </span>
-          {searchParams.id}
+        <div className="fl h-100-ns w-100 w-20-ns pa3 overflow-x-scroll nowrap">
+          <div className="b">Current Object Params</div>
+          <pre className="f6 code">{JSON.stringify(this.state.objectsParams, null, '  ')}</pre>
+          <div className="b">Objects History</div>
+          <ul className="pa0 ma0 no-list-style">
+            {this.state.objectsHistory.map(params =>
+              <li>
+                <pre
+                  className="f6 code clickable"
+                  onClick={() => {
+                    // TODO convert getObjects to accept params directly
+                    this.setState({
+                      objectsParams: params,
+                    });
+                    this.getObjects();
+                  }}
+                >
+                  { JSON.stringify(params, null, '  ') }
+                </pre>
+              </li>
+              )}
+          </ul>
         </div>
-        <div>
-          <span className="b">Resource: </span>
-          {searchParams.resource}
-        </div>
-        <div>
-          <span className="b">Object IDs: </span>
-          {searchParams.ids}
-        </div>
-        <div>
-          <span className="b">Available Types: </span>
-          {searchParams.types.split(',').map(type =>
-            <button className="link" onClick={() => this.getObjects(type)}>
-              {type}
-            </button>
-          )}
+        <div className="fl h-100 min-vh-100 w-100 w-80-ns pa3 bl-ns">
+          <Fieldset formValue={this.state.objectsForm}>
+            <Field select="resource" label="Resource">
+              <Input className="w-30" />
+            </Field>
+            <Field select="ids" label="IDs">
+              <Input className="w-30" />
+            </Field>
+            <Field select="type" label="Object Type">
+              <Input className="w-30" />
+            </Field>
+            <button className="link" onClick={this.getObjects}>Submit</button>
+          </Fieldset>
         </div>
         <div>
           <ul>

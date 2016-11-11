@@ -180,7 +180,7 @@ class Search extends React.Component {
 
   search(searchParams) {
     // search history cache key used for storage
-    const sck = `${searchParams.id}-search-history`;
+    const sck = `${this.props.connection.id}-search-history`;
     const searchHistory = StorageCache.getFromCache(sck) || [];
     this.setState({
       searchParams,
