@@ -14,6 +14,14 @@ class Search extends React.Component {
     metadata: React.PropTypes.any,
     location: React.PropTypes.any,
     router: React.PropTypes.any,
+    shared: {
+      connection: React.PropTypes.any,
+      metadata: React.PropTypes.any,
+      resource: React.PropTypes.any,
+      class: React.PropTypes.any,
+      fields: React.PropTypes.any,
+      rows: React.PropTypes.any,
+    },
   }
 
   static defaultProps = {
@@ -25,10 +33,17 @@ class Search extends React.Component {
     super(props);
     const searchForm = createValue({
       value: {
+        resource: props.shared.resource.ResourceID,
+        class: props.shared.class.ClassName,
         query: '(TIMESTAMP=2016-11-01T00:00:00+)',
       },
       onChange: this.searchInputsChange.bind(this),
     });
+
+    if (props.shared.class) {
+      const fields = props.shared.class['METADATA-TABLE'].Field;
+      searchForm.value.select = props.shared.fields.map(i => fields[i].SystemName).join(',');
+    }
     this.state = {
       searchParams: SearchService.params,
       searchForm,
@@ -46,7 +61,7 @@ class Search extends React.Component {
 
   componentWillMount() {
       // search history cache key used for storage
-    const sck = `${this.props.connection.id}-search-history`;
+    const sck = `${this.props.shared.connection.id}-search-history`;
     const searchHistory = StorageCache.getFromCache(sck) || [];
     let searchParams = Search.emptySearch;
     if (searchHistory.length > 0) {

@@ -13,8 +13,17 @@ class Metadata extends React.Component {
     params: React.PropTypes.any,
     location: React.PropTypes.any,
     router: React.PropTypes.any,
-    connection: React.PropTypes.any,
-    metadata: React.PropTypes.any,
+    shared: {
+      connection: React.PropTypes.any,
+      metadata: React.PropTypes.any,
+      resource: React.PropTypes.any,
+      class: React.PropTypes.any,
+      fields: React.PropTypes.any,
+      rows: React.PropTypes.any,
+    },
+    onRowsSelected: React.PropTypes.Func,
+    onRowsDeselected: React.PropTypes.Func,
+    onClassSelected: React.PropTypes.Func,
   }
 
   static defaultProps = {
@@ -22,24 +31,26 @@ class Metadata extends React.Component {
     metadata: MetadataService.empty,
   }
 
-  static emptyMetadata = {
-    System: {
-      'METADATA-RESOURCE': {
-        Resource: [],
-      },
-      SystemDescription: 'Loading metadata...',
-      SystemID: 'Loading...',
-    },
-  };
   constructor(props) {
     super(props);
+
+    const mtable = props.shared.class['METADATA-TABLE'];
+    const field = (mtable) ? mtable.Field : [];
+    const defaultRows = (mtable) ? mtable.Field : [];
+    const selectedFieldSet = [];
+    defaultRows.forEach(f => {
+      Object.keys(f).forEach(key => {
+        if (selectedFieldSet.includes(key)) {
+          return;
+        }
+        selectedFieldSet.push(key);
+      });
+    });
     this.state = {
-      selectedClass: null,
-      defaultRows: [],
-      selectedClassRows: [],
-      selectedFieldSet: [],
       filters: {},
-      selectedIndexes: [],
+      defaultRows: field,
+      selectedClassRows: field,
+      selectedFieldSet,
     };
     this.handleGridSort = this.handleGridSort.bind(this);
     this.onRowsSelected = this.onRowsSelected.bind(this);
@@ -47,25 +58,17 @@ class Metadata extends React.Component {
   }
 
   onRowsSelected(rows) {
-    this.setState({
-      selectedIndexes: this.state.selectedIndexes.concat(rows.map(r => r.rowIdx)),
-    });
+    this.props.onRowsSelected(rows);
   }
 
   onRowsDeselected(rows) {
-    const rowIndexes = rows.map(r => r.rowIdx);
-    this.setState({
-      selectedIndexes: this.state.selectedIndexes.filter(i => rowIndexes.indexOf(i) === -1),
-    });
+    this.props.onRowsDeselected(rows);
   }
 
-  onClearFilters = () => {
-    this.setState({ filters: {} });
-  }
-
-  metadataClassClick(selectedClass) {
-    const defaultRows = selectedClass['METADATA-TABLE'].Field;
-    const selectedClassRows = selectedClass['METADATA-TABLE'].Field;
+  onClassSelected(res, cls) {
+    this.props.onClassSelected(res, cls);
+    const defaultRows = cls['METADATA-TABLE'].Field;
+    const selectedClassRows = cls['METADATA-TABLE'].Field;
     const selectedFieldSet = [];
     defaultRows.forEach(field => {
       Object.keys(field).forEach(key => {
@@ -76,11 +79,14 @@ class Metadata extends React.Component {
       });
     });
     this.setState({
-      selectedClass,
       defaultRows,
       selectedClassRows,
       selectedFieldSet,
     });
+  }
+
+  onClearFilters = () => {
+    this.setState({ filters: {} });
   }
 
   handleGridSort(sortColumn, sortDirection) {
@@ -140,7 +146,7 @@ class Metadata extends React.Component {
   }
 
   render() {
-    const { selectedClassRows, selectedClass } = this.state;
+    const { selectedClassRows } = this.state;
     let tableBody;
     if (selectedClassRows) {
       const availableFields = this.state.selectedFieldSet;
@@ -155,12 +161,14 @@ class Metadata extends React.Component {
         }))
         : [];
       const rowGetter = (i) => selectedClassRows[i];
+      const selectedResource = this.props.shared.resource;
+      const selectedClass = this.props.shared.class;
       tableBody = (
         <div>
-          {selectedClass
+          {selectedResource
             ? (
               <span>
-                <span className="b">{selectedClass['METADATA-TABLE'].Resource} </span>
+                <span className="b">{selectedResource.ResourceID} </span>
                 {this.renderSelectedClassDescription(selectedClass)}
               </span>
             )
@@ -180,7 +188,7 @@ class Metadata extends React.Component {
               onRowsSelected: this.onRowsSelected,
               onRowsDeselected: this.onRowsDeselected,
               selectBy: {
-                indexes: this.state.selectedIndexes,
+                indexes: this.props.shared.fields,
               },
             }}
           />
@@ -189,20 +197,21 @@ class Metadata extends React.Component {
     } else {
       tableBody = null;
     }
+    const system = this.props.shared.metadata.System;
     return (
       <div>
         <div className="fl h-100-ns w-100 w-20-ns no-list-style pa3 overflow-x-scroll nowrap">
-          <h1 className="f5" title={this.props.metadata.System.SystemDescription}>
-            {this.props.metadata.System.SystemID}
+          <h1 className="f5" title={system.SystemDescription}>
+            {system.SystemID}
           </h1>
           <ul className="pa0 ma0">
-            {this.props.metadata.System['METADATA-RESOURCE'].Resource.map((r) =>
+            {system['METADATA-RESOURCE'].Resource.map((r) =>
               <li className="mb2">
                 <div title={r.Description} className="b">{r.ResourceID}</div>
                 <ul className="pa0 pl3 mv1">
                   {r['METADATA-CLASS'].Class.map((mClass) =>
                     <li
-                      onClick={() => this.metadataClassClick(mClass)}
+                      onClick={() => this.onClassSelected(r, mClass)}
                       className="clickable metadata-class-name"
                     >
                       {this.renderSelectedClassDescription(mClass)}
