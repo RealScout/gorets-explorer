@@ -70,6 +70,30 @@ class Objects extends React.Component {
       });
   }
 
+  getObjectTypes() {
+    if (!this.state.searchParams) {
+      return [];
+    }
+    const r = this.getResource();
+    if (r == null) {
+      return [];
+    }
+    return r['METADATA-OBJECT']['Object'].map(o => o.ObjectType) || [];
+  }
+
+  getResource() {
+    if (!this.state.searchParams) {
+      return [];
+    }
+    const rs = this.props.metadata.System['METADATA-RESOURCE'].Resource.filter(
+      r => (r.ResourceID === this.state.searchParams.resource)
+    );
+    if (rs.length === 0) {
+      return null;
+    }
+    return rs[0];
+  }
+
   searchInputsChange(objectsForm) {
     this.setState({ objectsForm });
   }
@@ -151,11 +175,12 @@ class Objects extends React.Component {
             <Field select="ids" label="IDs">
               <Input className="w-30" />
             </Field>
-            <Field select="type" label="Object Type">
-              <Input className="w-30" />
-            </Field>
-            <button className="link" onClick={this.getObjects}>Submit</button>
           </Fieldset>
+        </div>
+        <div>
+          {this.getObjectTypes().map(type =>
+            <button onClick={() => this.getObjects(type)}>{type}</button>
+          )}
         </div>
         <div>
           <ul>

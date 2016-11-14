@@ -42,6 +42,14 @@ class Search extends React.Component {
 
     if (props.shared.class) {
       searchForm.value.select = props.shared.fields.map(i => i.row.SystemName).join(',');
+      const ts = props.shared.class['METADATA-TABLE'].Field.filter(f => f.StandardName === 'ModificationTimestamp');
+      console.log('last modified fields:', ts);
+      if (ts.length > 0) {
+        const field = ts[0].SystemName.trim();
+        const date = JSON.stringify(new Date());
+        const day = date.substring(1, 12);
+        searchForm.value.query = `(${field}=${day}00:00:00+)`;
+      }
     }
     this.state = {
       searchParams: SearchService.params,
@@ -85,34 +93,6 @@ class Search extends React.Component {
     });
   }
 
-
-  // getObjects() {
-  //   const {
-  //     searchResultRows,
-  //     searchParams,
-  //     selectedIndexes,
-  //   } = this.state;
-  //   const keyFieldCol = this.getKeyFieldColumn();
-  //   const selectedRows = selectedIndexes.map(i => searchResultRows[i]);
-  //   console.log('rows', selectedRows);
-  //   const ids = selectedRows.map(r => r[keyFieldCol.key]);
-  //   if (ids.length === 0) {
-  //     console.log('no selected ids', selectedIndexes);
-  //     return;
-  //   }
-  //   console.log('ids', ids);
-  //   this.props.router.push({
-  //     ...this.props.location,
-  //     pathname: '/objects',
-  //     query: {
-  //       id: searchParams.id,
-  //       resource: searchParams.resource,
-  //       ids: ids.join(','),
-  //       types: this.getObjectTypes().join(','),
-  //     },
-  //   });
-  // }
-
   getKeyFieldColumn() {
     const { searchResultColumns } = this.state;
     const keyField = this.getResource().KeyField;
@@ -150,7 +130,7 @@ class Search extends React.Component {
   applySearchState() {
     // Search Results table setup
     const { searchResults } = this.state;
-    if (!searchResults.result) {
+    if (!searchResults.result.columns) {
       return;
     }
     console.log('setting search state');
@@ -263,7 +243,6 @@ class Search extends React.Component {
             <div className="b mb2">Search Results:</div>
             {this.renderSearchResultsTable()}
           </div>
-          <div className="b mb2">Operations:</div>
         </div>
       </div>
     );
