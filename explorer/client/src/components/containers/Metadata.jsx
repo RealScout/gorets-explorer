@@ -36,9 +36,9 @@ class Metadata extends React.Component {
 
     const mtable = props.shared.class['METADATA-TABLE'];
     const field = (mtable) ? mtable.Field : [];
-    const defaultRows = (mtable) ? mtable.Field : [];
+    const classRows = (mtable) ? mtable.Field : [];
     const selectedFieldSet = [];
-    defaultRows.forEach(f => {
+    classRows.forEach(f => {
       Object.keys(f).forEach(key => {
         if (selectedFieldSet.includes(key)) {
           return;
@@ -48,8 +48,8 @@ class Metadata extends React.Component {
     });
     this.state = {
       filters: {},
-      defaultRows: field,
-      selectedClassRows: field,
+      classRows: field,
+      filteredRows: field,
       selectedFieldSet,
     };
     this.handleGridSort = this.handleGridSort.bind(this);
@@ -66,11 +66,14 @@ class Metadata extends React.Component {
   }
 
   onClassSelected(res, cls) {
+    if (cls === this.props.shared.class) {
+      return;
+    }
     this.props.onClassSelected(res, cls);
-    const defaultRows = cls['METADATA-TABLE'].Field;
-    const selectedClassRows = cls['METADATA-TABLE'].Field;
+    const classRows = cls['METADATA-TABLE'].Field;
+    const filteredRows = cls['METADATA-TABLE'].Field;
     const selectedFieldSet = [];
-    defaultRows.forEach(field => {
+    classRows.forEach(field => {
       Object.keys(field).forEach(key => {
         if (selectedFieldSet.includes(key)) {
           return;
@@ -79,8 +82,8 @@ class Metadata extends React.Component {
       });
     });
     this.setState({
-      defaultRows,
-      selectedClassRows,
+      classRows,
+      filteredRows,
       selectedFieldSet,
     });
   }
@@ -101,9 +104,9 @@ class Metadata extends React.Component {
       return null;
     };
     const rows = sortDirection === 'NONE'
-      ? this.state.selectedClassRows
-      : this.state.selectedClassRows.sort(comparer);
-    this.setState({ selectedClassRows: rows });
+      ? this.state.filteredRows
+      : this.state.filteredRows.sort(comparer);
+    this.setState({ filteredRows: rows });
   }
 
   // TODO row selection and filters arent playing well together
@@ -115,7 +118,7 @@ class Metadata extends React.Component {
       delete newFilters[filter.column.key];
     }
     this.setState({ filters: newFilters });
-    const rows = this.state.defaultRows;
+    const rows = this.state.classRows;
     const newRows = [...rows];
     Object.keys(newFilters).forEach(newFilter => {
       const filterObj = newFilters[newFilter];
@@ -133,7 +136,7 @@ class Metadata extends React.Component {
       }
     });
     if (newRows.length > 0) {
-      this.setState({ selectedClassRows: newRows });
+      this.setState({ filteredRows: newRows });
     }
   }
 
@@ -146,11 +149,11 @@ class Metadata extends React.Component {
   }
 
   render() {
-    const { selectedClassRows } = this.state;
+    const { filteredRows } = this.state;
     let tableBody;
-    if (selectedClassRows) {
+    if (filteredRows) {
       const availableFields = this.state.selectedFieldSet;
-      const fieldSet = (selectedClassRows && selectedClassRows.length > 0)
+      const fieldSet = (filteredRows && filteredRows.length > 0)
         ? availableFields.map((name) => ({
           key: name,
           name,
@@ -160,7 +163,7 @@ class Metadata extends React.Component {
           filterable: true,
         }))
         : [];
-      const rowGetter = (i) => selectedClassRows[i];
+      const rowGetter = (i) => filteredRows[i];
       const selectedResource = this.props.shared.resource;
       const selectedClass = this.props.shared.class;
       tableBody = (
@@ -178,7 +181,7 @@ class Metadata extends React.Component {
             onGridSort={this.handleGridSort}
             columns={fieldSet}
             rowGetter={rowGetter}
-            rowsCount={selectedClassRows.length}
+            rowsCount={filteredRows.length}
             toolbar={<Toolbar enableFilter />}
             onAddFilter={this.handleFilterChange}
             onClearFilters={this.onClearFilters}
@@ -188,7 +191,8 @@ class Metadata extends React.Component {
               onRowsSelected: this.onRowsSelected,
               onRowsDeselected: this.onRowsDeselected,
               selectBy: {
-                indexes: this.props.shared.fields,
+                // TODO this does not deal with filter/sort
+                indexes: this.props.shared.fields.map(r => r.rowIdx),
               },
             }}
           />
@@ -223,7 +227,7 @@ class Metadata extends React.Component {
           </ul>
         </div>
         <div className="fl h-100 min-vh-100 w-100 w-80-ns pa3 bl-ns">
-          { this.state.defaultRows.length > 0
+          { this.state.classRows.length > 0
             ? (
               <div>
                 { tableBody }

@@ -8,10 +8,10 @@ export default class SearchService {
     select: null,
     query: null,
     // optional
-    format: null, // defaults to COMPACT-DECODED
-    counttype: null, // defaults = 0 (none)
-    querytype: null, // defaults to DMQL2
-    offset: null, // defaults to 1
+    format: 'COMPACT-DECODED', // defaults to COMPACT-DECODED
+    counttype: 0, // defaults = 0 (none)
+    querytype: 'DMQL2', // defaults to DMQL2
+    offset: 1, // defaults to 1
     limit: null, // defaults to none
   };
 
@@ -29,8 +29,8 @@ export default class SearchService {
         params: [{
           ...params,
           format: 'COMPACT-DECODED',
-          'query-type': 'DMQL2',
-          'count-type': 1,
+          querytype: 'DMQL2',
+          counttype: 1,
         }],
       }),
     });

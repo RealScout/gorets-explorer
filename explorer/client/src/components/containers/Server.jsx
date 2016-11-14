@@ -53,20 +53,23 @@ class Server extends React.Component {
   }
 
   onMetadataSelected(rows) {
+    console.log('rows selected:', rows);
     const shared = this.state.shared;
-    shared.fields = this.state.shared.fields.concat(rows.map(r => r.rowIdx));
+    shared.fields = shared.fields.concat(rows);
     this.setState({ shared });
+    console.log('rows:', shared.fields);
   }
 
   onMetadataDeselected(rows) {
+    console.log('rows deselected:', rows);
     const shared = this.state.shared;
-    const rowIndexes = rows.map(r => r.rowIdx);
-    shared.fields = this.state.shared.fields.filter(i => rowIndexes.indexOf(i) === -1);
+    shared.fields = shared.fields.filter(i => rows.map(r => r.row).indexOf(i.row) === -1);
     this.setState({ shared });
+    console.log('rows:', shared.fields);
   }
 
   onClassSelected(res, cls) {
-    console.log('selected:', res, cls);
+    console.log('class selected:', res, cls);
     const shared = this.state.shared;
     shared.resource = res;
     shared.class = cls;

@@ -41,8 +41,7 @@ class Search extends React.Component {
     });
 
     if (props.shared.class) {
-      const fields = props.shared.class['METADATA-TABLE'].Field;
-      searchForm.value.select = props.shared.fields.map(i => fields[i].SystemName).join(',');
+      searchForm.value.select = props.shared.fields.map(i => i.row.SystemName).join(',');
     }
     this.state = {
       searchParams: SearchService.params,
@@ -124,17 +123,6 @@ class Search extends React.Component {
     return keyFieldCols[0];
   }
 
-  getObjectTypes() {
-    if (!this.state.searchParams) {
-      return [];
-    }
-    const r = this.getResource();
-    if (r == null) {
-      return [];
-    }
-    return r['METADATA-OBJECT']['Object'].map(o => o.ObjectType) || [];
-  }
-
   getResource() {
     if (!this.state.searchParams) {
       return [];
@@ -150,7 +138,7 @@ class Search extends React.Component {
 
   submitSearchForm() {
     this.search({
-      id: this.props.connection.id,
+      id: this.props.shared.connection.id,
       ...this.state.searchForm.value,
     });
   }
@@ -179,23 +167,9 @@ class Search extends React.Component {
     });
   }
 
-  // does the current state and selections support an object request
-  canPullObjects() {
-    if (this.state.selectedIndexes.length === 0) {
-      return false;
-    }
-    if (this.getObjectTypes().length === 0) {
-      return false;
-    }
-    if (this.getKeyFieldColumn() == null) {
-      return false;
-    }
-    return true;
-  }
-
   search(searchParams) {
     // search history cache key used for storage
-    const sck = `${this.props.connection.id}-search-history`;
+    const sck = `${this.props.shared.connection.id}-search-history`;
     const searchHistory = StorageCache.getFromCache(sck) || [];
     this.setState({
       searchParams,
@@ -290,15 +264,6 @@ class Search extends React.Component {
             {this.renderSearchResultsTable()}
           </div>
           <div className="b mb2">Operations:</div>
-          <div>
-            <button
-              disabled={!this.canPullObjects()}
-              className="link"
-              onClick={() => this.getObjects()}
-            >
-              Objects: {this.getObjectTypes().join(', ')}
-            </button>
-          </div>
         </div>
       </div>
     );
