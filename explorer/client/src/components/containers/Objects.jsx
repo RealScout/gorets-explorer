@@ -81,6 +81,16 @@ class Objects extends React.Component {
     return r['METADATA-OBJECT']['Object'].map(o => o.ObjectType) || [];
   }
 
+  getKeyFieldColumn() {
+    const { searchResultColumns } = this.state;
+    const keyField = this.getResource().KeyField;
+    const keyFieldCols = searchResultColumns.filter(c => (c.name === keyField));
+    if (keyFieldCols.length === 0) {
+      return null;
+    }
+    return keyFieldCols[0];
+  }
+
   getResource() {
     if (!this.state.searchParams) {
       return [];
@@ -93,6 +103,7 @@ class Objects extends React.Component {
     }
     return rs[0];
   }
+
 
   searchInputsChange(objectsForm) {
     this.setState({ objectsForm });

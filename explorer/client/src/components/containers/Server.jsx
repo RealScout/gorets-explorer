@@ -34,12 +34,14 @@ class Server extends React.Component {
         resource: {},
         class: {},
         fields: [],
-        rows: [],
+        data: [],
       },
     };
     this.getMetadata = this.getMetadata.bind(this);
     this.onMetadataSelected = this.onMetadataSelected.bind(this);
     this.onMetadataDeselected = this.onMetadataDeselected.bind(this);
+    this.onDataSelected = this.onDataSelected.bind(this);
+    this.onDataDeselected = this.onDataDeselected.bind(this);
     this.onClassSelected = this.onClassSelected.bind(this);
   }
 
@@ -66,6 +68,22 @@ class Server extends React.Component {
     shared.fields = shared.fields.filter(i => rows.map(r => r.row).indexOf(i.row) === -1);
     this.setState({ shared });
     console.log('rows:', shared.fields);
+  }
+
+  onDataSelected(rows) {
+    console.log('rows selected:', rows);
+    const shared = this.state.shared;
+    shared.data = shared.fields.concat(rows);
+    this.setState({ shared });
+    console.log('rows:', shared.data);
+  }
+
+  onDataDeselected(rows) {
+    console.log('rows deselected:', rows);
+    const shared = this.state.shared;
+    shared.data = shared.data.filter(i => rows.map(r => r.row).indexOf(i.row) === -1);
+    this.setState({ shared });
+    console.log('rows:', shared.data);
   }
 
   onClassSelected(res, cls) {
@@ -115,7 +133,12 @@ class Server extends React.Component {
             onClassSelected={this.onClassSelected}
           />
         </TabPanel>
-        <TabPanel><Search shared={this.state.shared} /></TabPanel>
+        <TabPanel>
+          <Search
+            shared={this.state.shared}
+            onRowsSelected={this.onDataSelected}
+            onRowsDeselected={this.onDataDeselected}
+          /></TabPanel>
         <TabPanel><Objects shared={this.state.shared} /></TabPanel>
       </Tabs>
     );

@@ -22,6 +22,8 @@ class Search extends React.Component {
       fields: React.PropTypes.any,
       rows: React.PropTypes.any,
     },
+    onRowsSelected: React.PropTypes.Func,
+    onRowsDeselected: React.PropTypes.Func,
   }
 
   static defaultProps = {
@@ -81,46 +83,11 @@ class Search extends React.Component {
   }
 
   onRowsSelected(rows) {
-    this.setState({
-      selectedIndexes: this.state.selectedIndexes.concat(rows.map(r => r.rowIdx)),
-    });
+    this.props.onRowsSelected(rows);
   }
 
   onRowsDeselected(rows) {
-    const rowIndexes = rows.map(r => r.rowIdx);
-    this.setState({
-      selectedIndexes: this.state.selectedIndexes.filter(i => rowIndexes.indexOf(i) === -1),
-    });
-  }
-
-  getKeyFieldColumn() {
-    const { searchResultColumns } = this.state;
-    const keyField = this.getResource().KeyField;
-    const keyFieldCols = searchResultColumns.filter(c => (c.name === keyField));
-    if (keyFieldCols.length === 0) {
-      return null;
-    }
-    return keyFieldCols[0];
-  }
-
-  getResource() {
-    if (!this.state.searchParams) {
-      return [];
-    }
-    const rs = this.props.metadata.System['METADATA-RESOURCE'].Resource.filter(
-      r => (r.ResourceID === this.state.searchParams.resource)
-    );
-    if (rs.length === 0) {
-      return null;
-    }
-    return rs[0];
-  }
-
-  submitSearchForm() {
-    this.search({
-      id: this.props.shared.connection.id,
-      ...this.state.searchForm.value,
-    });
+    this.props.onRowsDeselected(rows);
   }
 
   searchInputsChange(searchForm) {
@@ -130,7 +97,7 @@ class Search extends React.Component {
   applySearchState() {
     // Search Results table setup
     const { searchResults } = this.state;
-    if (!searchResults.result.columns) {
+    if (!searchResults.result || !searchResults.result.columns) {
       return;
     }
     console.log('setting search state');
@@ -147,13 +114,26 @@ class Search extends React.Component {
     });
   }
 
+  submitSearchForm() {
+    this.search({
+      id: this.props.shared.connection.id,
+      ...this.state.searchForm.value,
+    });
+  }
+
   search(searchParams) {
+    const searchForm = this.state.searchForm;
+    searchForm.value.resource = searchParams.resource;
+    searchForm.value.class = searchParams.class;
+    searchForm.value.query = searchParams.query;
+    searchForm.value.select = searchParams.select;
     // search history cache key used for storage
     const sck = `${this.props.shared.connection.id}-search-history`;
     const searchHistory = StorageCache.getFromCache(sck) || [];
     this.setState({
       searchParams,
       searchHistory,
+      searchForm,
     });
     console.log('source id:', searchParams.id);
     if (searchParams === Search.emptySearch) {
@@ -194,7 +174,7 @@ class Search extends React.Component {
           onRowsSelected: this.onRowsSelected,
           onRowsDeselected: this.onRowsDeselected,
           selectBy: {
-            indexes: this.state.selectedIndexes,
+            indexes: this.props.shared.data.map(d => d.rowIdx),
           },
         }}
       />
@@ -240,7 +220,9 @@ class Search extends React.Component {
             </Fieldset>
           </div>
           <div>
-            <div className="b mb2">Search Results:</div>
+            <div className="b mb2">
+                Search Results: {this.state.searchResults.error ? (`${this.state.searchResults.error}`) : ''}
+            </div>
             {this.renderSearchResultsTable()}
           </div>
         </div>

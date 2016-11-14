@@ -2,6 +2,7 @@ package explorer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -71,6 +72,15 @@ func (ms SearchService) Run(r *http.Request, args *SearchArgs, reply *SearchPage
 		}
 		// opening the strea
 		reply.Columns = result.Columns
+		// check for status
+		switch result.Response.Code {
+		case rets.StatusOK:
+			// we got some daters
+		case rets.StatusNoRecords:
+			return nil
+		default: // shit hit the fan
+			return errors.New(result.Response.Text)
+		}
 		// too late to err in http here, need another solution
 		reply.MaxRows, err = result.ForEach(func(row rets.Row, err error) error {
 			reply.Rows = append(reply.Rows, row)
