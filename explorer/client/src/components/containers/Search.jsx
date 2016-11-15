@@ -42,7 +42,7 @@ class Search extends React.Component {
       onChange: this.searchInputsChange.bind(this),
     });
 
-    if (props.shared.class) {
+    if (props.shared.class['METADATA-TABLE']) {
       searchForm.value.select = props.shared.fields.map(i => i.row.SystemName).join(',');
       const ts = props.shared.class['METADATA-TABLE'].Field.filter(f => f.StandardName === 'ModificationTimestamp');
       console.log('last modified fields:', ts);
