@@ -8,12 +8,12 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/rpc"
 	"github.com/gorilla/rpc/json"
-	"github.com/jpfielding/gorets/explorer"
+	"github.com/jpfielding/gorets-explorer/explorer"
 )
 
 func main() {
 	port := flag.String("port", "8000", "http port")
-	react := flag.String("react", "../../explorer/client/build", "ReactJS path")
+	react := flag.String("react", "reactjs/client/build", "ReactJS path")
 
 	flag.Parse()
 
