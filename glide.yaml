@@ -1,5 +1,5 @@
-package: github.com/jpfielding/gorets
-homepage: github.com/jpfielding/gorets
+package: github.com/jpfielding/gorets-explorer
+homepage: github.com/jpfielding/gorets-explorer
 license: GPL3
 
 import:
@@ -13,6 +13,7 @@ import:
     subpackages:
     - /encoding
     - /transform
+  - package: github.com/jpfielding/gorets
   - package: github.com/jpfielding/gotest
   - package: github.com/jpfielding/gofilters
   - package: github.com/jpfielding/gowirelog
