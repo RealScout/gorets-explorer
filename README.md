@@ -1,66 +1,41 @@
-gorets
-======
+gorets explorer client
+======================
 
-RETS client in Go
+## Dependencies
 
-[![Build Status](https://travis-ci.org/jpfielding/gorets.svg?branch=master)](https://travis-ci.org/jpfielding/gorets.
+Requires node >= 6.3.1. Can switch by running `nvm use`.
 
-The attempt is to meet 1.8.0 compliance.
+## Installing
 
-http://www.reso.org/assets/RETS/Specifications/rets_1_8.pdf.
+`npm i`
 
-Find me at gophers.slack.com#gorets
+## Running
 
+`npm run start`
+Visit http://localhost:8000
 
-```
-config.json:
-{
-	"username": "user",
-	"password": "pwd",
-	"url":	  "http://www.rets.com/rets/login",
-	"user-agent": "Company/1.0",
-	"user-agent-pw": "",
-	"rets-version": "RETS/1.7",
-	"wirelog": "/tmp/gorets/wire.log"
-}
-```
+## Technologies
 
-[Example Search](cmds/search/example.go)
-```
-go run cmds/search/*.go -config-file ~/gorets/config.json -search-options ~/gorets/search.json -output /tmp/
+The front end build process uses:
 
-search.json:
-{
-	"resource": "Property",
-	"class": "Residential",
-	"select": "",
-	"format": "COMPACT_DECODED",
-	"query-type": "dmql2",
-	"count-type": 1,
-	"limit": 2500,
-	"query": "(ModifiedDateTime=2016-08-01T00:00:00+)"
-}
+### Building
 
-```
-[Example GetObject](cmds/getobject/example.go)
-```
-go run cmds/getobject/*.go -config-file ~/gorets/config.json -object-options ~/gorets/getobject.json -output /tmp/
+- [Eslint](http://eslint.org/)
+	- [airbnb preset](https://github.com/airbnb/javascript)
+- [Webpack](https://webpack.github.io/)
 
-getobject.json:
-{
-	"resource": "Property",
-	"type": "Photo",
-	"id": "1330918:*,1555397:*"
-}
-```
-[Example Metadata](cmds/metadata/example.go)
-```
-go run cmds/metadata/*.go -config-file ~/gorets/config.json -metadata-options ~/gorets/metadata.json -output /tmp
+### Javascript
 
-metadata.json
-{
-        "metadata-type": "METADATA-SYSTEM",
-        "format":       "COMPACT",
-        "id":           "*"
-}
-```
+- [Babel](http://babeljs.io/)
+- [React](https://facebook.github.io/react/)
+
+### CSS
+
+- [PostCSS](http://postcss.org/)
+	- Compiler for CSS. Allows transforming CSS with JS. This gives you error messages for improperly formatted code and lets you specify plugins for css parsing like:
+  - [CssNext](http://cssnext.io/)
+    - Allows you to write CSS4 spec CSS. Allows variables, nested components. Similar to SASS/ LESS.
+  	- [Autoprefixer](https://github.com/postcss/autoprefixer)
+  		- Automatic vendor prefixing of CSS rules. No more having to worry about `-ms`, `-webkit` prefixes. Includes browser fixes for common broken css rules
+- [Tachyons](http://tachyons.io/#getting-started)
+  - Dead simple CSS framework for common classes.

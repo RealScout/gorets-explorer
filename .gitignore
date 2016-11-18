@@ -1,10 +1,9 @@
-.idea
 *.iml
 out
 *~
-metadata/main/metadata.go
+.DS_Store
 vendor/
 glide.lock
-explorer/client/node_modules/*
-explorer/client/build/*
-explorer/client/npm-debug.log
+reactjs/client/node_modules/*
+reactjs/client/build/*
+reactjs/client/npm-debug.log
