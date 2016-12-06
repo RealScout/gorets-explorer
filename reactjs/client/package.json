@@ -1,5 +1,5 @@
 {
-  "name": "gorets-client",
+  "name": "gorets-explorer-client",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jpfielding/gorets.git"
+    "url": "git+https://github.com/jpfielding/gorets-explorer.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jpfielding/gorets/issues"
+    "url": "https://github.com/jpfielding/gorets-explorer/issues"
   },
-  "homepage": "https://github.com/jpfielding/gorets#readme",
+  "homepage": "https://github.com/jpfielding/gorets-explorer#readme",
   "devDependencies": {
     "babel-core": "^6.13.2",
     "babel-eslint": "^6.1.2",

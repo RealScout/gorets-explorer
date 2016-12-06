@@ -87,8 +87,8 @@ module.exports = {
       browsers: ['> 1%', 'last 2 versions', 'iOS 8', 'iOS 7'],
       flexbox: true,
     }),
-    postcssImport,
-    postcssFlexbugFixes]
+      postcssImport,
+      postcssFlexbugFixes]
   ),
   devServer: {
     headers: { 'Access-Control-Allow-Origin': '*' },
