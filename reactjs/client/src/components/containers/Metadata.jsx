@@ -45,6 +45,7 @@ class Metadata extends React.Component {
       metadata: Metadata.emptyMetadata,
       selectedClass: null,
       defaultRows: [],
+      lookupValues: [],
       selectedClassRows: [],
       selectedFieldSet: [],
       filters: {},
@@ -87,12 +88,31 @@ class Metadata extends React.Component {
     if (searchForm.value === null) {
       searchForm.value = {};
     }
+
+    let newLookupValues = [];
+
+    if (row['Interpretation'] && row['Interpretation'].indexOf('Lookup') === 0) {
+      const selectedResource = this.state.selectedClass['METADATA-TABLE']['Resource'];
+      const lookupName = row['LookupName'];
+      const resource = this.state.metadata['System']['METADATA-RESOURCE']['Resource'].find( (res) => {
+        return res['ResourceID'] === selectedResource;
+      });
+      const lookups = resource['METADATA-LOOKUP']['Lookup'].find( (lookup) => {
+        return lookup['LookupName'] === lookupName;
+      });
+      newLookupValues = lookups['METADATA-LOOKUP_TYPE']['LookupType'];
+    }
     let currentSearchVal = searchForm.value['select'] || '';
     if (currentSearchVal !== '') {
       currentSearchVal = `${currentSearchVal},`;
     }
-    searchForm.value['select'] = `${currentSearchVal}${selectedVal}`;
-    this.setState({ searchForm });
+
+      const newSelect = `${currentSearchVal}${selectedVal}`;
+      searchForm.value['select'] = Array.from(new Set(newSelect.split(','))).join(',');
+    this.setState({
+        searchForm: searchForm,
+        lookupValues: newLookupValues
+    });
   }
 
   getMetadata(connectionId) {
@@ -216,21 +236,64 @@ class Metadata extends React.Component {
     );
   }
 
+  renderLookupValues() {
+    const columns = [
+        { key: 'Value', name: 'Value' },
+        { key: 'ShortValue', name: 'Short Value' },
+        { key: 'LongValue', name: 'Long Value' },
+    ];
+
+    const rows = this.state.lookupValues.map( (lookupEntry) => {
+        return {
+            LongValue: lookupEntry['LongValue'],
+            ShortValue: lookupEntry['ShortValue'],
+            Value: lookupEntry['Value']
+        }
+    });
+
+    const rowGetter = (i) => {
+        return rows[i];
+    };
+
+    let selectedFields = this.state.searchForm.value.select;
+    if (rows.length && selectedFields) {
+       selectedFields = selectedFields.split(',');
+        return (
+            <div>
+                <h3>Lookup Values for {selectedFields[selectedFields.length - 1]}</h3>
+                <ReactDataGrid
+                    columns={columns}
+                    rowGetter={rowGetter}
+                    rowsCount={rows.length}
+                    minHeight={500}
+                />
+            </div>
+        );
+    }
+
+  }
+
   render() {
     const { selectedClassRows, selectedClass } = this.state;
-    let tableBody;
+    let tableBody, lookupBody;
+      const columnsToFilter = ['MetadataEntryID', 'Searchable', 'DBName', 'ShortName', 'Alignment', 'UseSeparator',
+          'EditMaskID', 'Default', 'Unique', 'ModTimeStamp', 'InKeyIndex', 'Precision', 'MaxSelect', 'MaximumLength'];
     if (selectedClassRows) {
       const availableFields = this.state.selectedFieldSet;
-      const fieldSet = (selectedClassRows && selectedClassRows.length > 0)
-        ? availableFields.map((name) => ({
-          key: name,
-          name,
-          resizable: true,
-          width: 200,
-          sortable: true,
-          filterable: true,
-        }))
-        : [];
+      const fieldSet = ((selectedClassRows && selectedClassRows.length > 0)
+        ? availableFields.map((name) => {
+              return {
+                  key: name,
+                  name,
+                  resizable: true,
+                  width: 200,
+                  sortable: true,
+                  filterable: true,
+              }
+          })
+        : []).filter( (field) => {
+            return columnsToFilter.indexOf(field.key) === -1
+      });
       const rowGetter = (i) => selectedClassRows[i];
       tableBody = (
         <div>
@@ -255,8 +318,10 @@ class Metadata extends React.Component {
           />
         </div>
       );
+      lookupBody = this.renderLookupValues();
     } else {
       tableBody = null;
+      lookupBody = null;
     }
     return (
       <div>
@@ -296,6 +361,7 @@ class Metadata extends React.Component {
                   </Field>
                   <button onClick={this.submitSearchForm}>Submit</button>
                 </Fieldset>
+                  { lookupBody }
               </div>
             )
             : <h1 className="f4">Please select a class to explore</h1>
